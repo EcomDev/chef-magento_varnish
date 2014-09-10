@@ -1,0 +1,1 @@
+::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
