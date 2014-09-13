@@ -4,7 +4,7 @@ maintainer_email 'ivan.chepurnyi@ecomdev.org'
 license          'GPLv3'
 description      'Installs varnish adopted for Magento installments'
 long_description 'Installs varnish adopted for Magento installments'
-version          '0.1.0'
+version          '0.1.1'
 
 depends 'ecomdev_common'
 depends 'openssl'
