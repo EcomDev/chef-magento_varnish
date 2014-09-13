@@ -122,6 +122,15 @@ sub normalize_gzip_ua {
 
     # Send Surrogate-Capability headers to announce ESI support to backend
     set req.http.Surrogate-Capability = "key=ESI/1.0";
+    if (req.http.User-Agent ~ "(?i)(ads|google|bing|msn|yandex|baidu|ro|career|)bot" ||
+        req.http.User-Agent ~ "(?i)(baidu|jike|symantec)spider" ||
+        req.http.User-Agent ~ "(?i)(facebook|scanner)" ||
+        req.http.User-Agent ~ "(?i)(web)crawler") {
+        set req.http.X-UA-Device = "bot";
+    }
+
+    # Send Surrogate-Capability headers to announce ESI support to backend
+    set req.http.Surrogate-Capability = "key=ESI/1.0";
     set req.http.User-Agent = req.http.User-Agent + " " + req.http.X-UA-Device;
 }
 
