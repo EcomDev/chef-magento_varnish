@@ -171,11 +171,12 @@ sub vcl_recv {
 
     call normalize_url;
     call normalize_cookie;
-    call normalize_gzip_ua;
     call normalize_customer_segment;
     call normalize_ip_address;
 
     call devicedetect;
+
+    call normalize_gzip_ua;
 
     # Deny access to admin, if not in list of allowed ip
     if (req.http.is-admin && client.ip !~ allow_admin) {
@@ -217,6 +218,8 @@ sub vcl_recv {
     } else {
         set req.http.X-Geo-Country = geoip.client_country_code();
     }
+
+    set req.http.X-Geo-Country-Real = req.http.X-Geo-Country;
 
     if (cookie.isset("force_geo_country")) {
         set req.http.X-Geo-Country = cookie.get("force_geo_country");
