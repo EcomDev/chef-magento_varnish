@@ -170,11 +170,12 @@ sub vcl_recv {
 
     call normalize_url;
     call normalize_cookie;
-    call normalize_gzip_ua;
     call normalize_customer_segment;
     call normalize_ip_address;
 
     call devicedetect;
+
+    call normalize_gzip_ua;
 
     # Deny access to admin, if not in list of allowed ip
     if (req.http.is-admin && client.ip !~ allow_admin) {
