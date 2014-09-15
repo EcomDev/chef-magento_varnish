@@ -330,7 +330,10 @@ sub vcl_fetch {
     }
 
     set beresp.http.X-UA-Device = req.http.X-UA-Device;
-    set beresp.http.X-Cache-Segment = req.http.X-Cache-Segment;
+
+    if (!beresp.http.X-Cache-Segment) {
+        set beresp.http.X-Cache-Segment = req.http.X-Cache-Segment;
+    }
 
     # Remove all cookies for static files and cache them for 1hour
     if (req.url ~ "^[^?]*\.(bmp|bz2|css|doc|eot|flv|gif|gz|ico|jpeg|jpg|js|less|pdf|png|rtf|swf|txt|woff|xml|css\.map)(\?.*)?$") {
@@ -358,6 +361,20 @@ sub vcl_deliver {
         set resp.http.X-Cache = "uncached";
     }
 
+    if (resp.http.X-Cache-Segment && (!cookie.isset("segment_checksum") || cookie.get("segment_checksum") != resp.http.X-Cache-Segment)
+        && !header.get(resp.http.Set-Cookie, "segment_checksum=")) {
+        header.append(resp.http.Set-Cookie, "segment_checksum=" + resp.http.X-Cache-Segment + "; Domain=." + req.http.Host + "; Path=/");
+    }
+
+    if (resp.http.X-Cache-Store && (!cookie.isset("store") || cookie.get("store") != resp.http.X-Cache-Store)
+        && !header.get(resp.http.Set-Cookie, "store=")) {
+        header.append(resp.http.Set-Cookie, "store=" + resp.http.X-Cache-Store + "; Domain=." + req.http.Host + "; Path=/; HttpOnly");
+    }
+
+    if (req.http.X-Geo-Country-Real && req.http.X-Geo-Country-Real !~ "Unknown" && !cookie.isset("force_geo_country")) {
+        header.append(resp.http.Set-Cookie, "real_geo_country=" + req.http.X-Geo-Country-Real + "; Domain=." + req.http.Host + "; Path=/");
+    }
+
     # Remove some headers: Apache version & OS
     if (!resp.http.X-Debug) {
         remove resp.http.X-Cache;
@@ -368,10 +385,6 @@ sub vcl_deliver {
         remove resp.http.Server;
         remove resp.http.Via;
         remove resp.http.Link;
-    }
-
-    if (req.http.X-Geo-Country-Real && req.http.X-Geo-Country-Real !~ "Unknown" && !cookie.isset("force_geo_country")) {
-        header.append(resp.http.Set-Cookie, "real_geo_country=" + req.http.X-Geo-Country-Real + "; Domain=." + req.http.Host + "; Path=/");
     }
 
     return (deliver);
